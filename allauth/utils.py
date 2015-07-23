@@ -1,6 +1,6 @@
 import re
 import unicodedata
-import json
+import json, os
 
 from django.core.exceptions import ImproperlyConfigured
 from django.core.validators import validate_email, ValidationError
@@ -44,28 +44,7 @@ def _generate_unique_username_base(txts):
 
 
 def generate_unique_username(txts):
-    from .account.app_settings import USER_MODEL_USERNAME_FIELD
-    username = _generate_unique_username_base(txts)
-    User = get_user_model()
-    try:
-        max_length = User._meta.get_field(USER_MODEL_USERNAME_FIELD).max_length
-    except FieldDoesNotExist:
-        raise ImproperlyConfigured(
-            "USER_MODEL_USERNAME_FIELD does not exist in user-model"
-        )
-    i = 0
-    while True:
-        try:
-            if i:
-                pfx = str(i + 1)
-            else:
-                pfx = ''
-            ret = username[0:max_length - len(pfx)] + pfx
-            query = {USER_MODEL_USERNAME_FIELD + '__iexact': ret}
-            User.objects.get(**query)
-            i += 1
-        except User.DoesNotExist:
-            return ret
+    return os.urandom(28).encode('hex')
 
 
 def valid_email_or_none(email):

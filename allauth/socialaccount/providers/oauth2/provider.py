@@ -33,7 +33,7 @@ class OAuth2Provider(Provider):
         dynamic_scope = request.GET.get('scope', None)
         if dynamic_scope:
             scope.extend(dynamic_scope.split(','))
-        return scope
+        return dynamic_scope
 
     def get_default_scope(self):
         return []
