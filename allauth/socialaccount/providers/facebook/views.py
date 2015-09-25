@@ -27,7 +27,8 @@ def fb_complete_login(request, app, token):
         resp = requests.get(GRAPH_API_URL + '/me',
                         params={'access_token': token.token}, timeout=2)
     except: #(requests.exceptions.Timeout, requests.exceptions.ConnectionError, requests.exceptions.HTTPError):
-        return redirect('%s?fbpr=%s' % (request.META['HTTP_REFERER'],'y'))
+        redir_url = '%s?fbpr=%s' % (request.META['HTTP_REFERER'].split('?fbpr=y')[0],'y')
+        return redirect(redir_url)
         #raise Exception(request.META['HTTP_REFERER'])
     
     resp.raise_for_status()
