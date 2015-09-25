@@ -2,7 +2,7 @@ import logging
 import requests
 
 from django.utils.cache import patch_response_headers
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 
 
 from allauth.socialaccount.models import (SocialLogin,
@@ -27,7 +27,9 @@ def fb_complete_login(request, app, token):
         resp = requests.get(GRAPH_API_URL + '/me',
                         params={'access_token': token.token}, timeout=2)
     except: #(requests.exceptions.Timeout, requests.exceptions.ConnectionError, requests.exceptions.HTTPError):
-        raise Exception(request.META['HTTP_REFERER'])
+        return redirect('%s?fbpr=%s' % (request.META['HTTP_REFERER'],'y'))
+        #raise Exception(request.META['HTTP_REFERER'])
+    
     resp.raise_for_status()
     extra_data = resp.json()
     login = providers.registry \
