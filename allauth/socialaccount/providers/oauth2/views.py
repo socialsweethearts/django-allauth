@@ -4,6 +4,7 @@ from datetime import timedelta
 
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
+from django.shortcuts import redirect
 from django.http import HttpResponseRedirect
 from django.utils import timezone
 
@@ -106,6 +107,7 @@ class OAuth2CallbackView(OAuth2View):
         app = self.adapter.get_provider().get_app(self.request)
         client = self.get_client(request, app)
         try:
+            raise PermissionDenied()
             access_token = client.get_access_token(request.GET['code'])
             token = self.adapter.parse_token(access_token)
             token.app = app
@@ -123,7 +125,11 @@ class OAuth2CallbackView(OAuth2View):
                 login.state = SocialLogin.unstash_state(request)
             return complete_social_login(request, login)
         except (PermissionDenied, OAuth2Error) as e:
-            return render_authentication_error(
-                request,
-                self.adapter.provider_id,
-                exception=e)
+            # clear all client session, to make sure that user gets new accesstoken
+            request.session.flush()
+            redir_url = '%s?permd_or_oauth2err=%s' % (request.META['HTTP_REFERER'].split('?permd_or_oauth2err=y')[0],'y')
+            return redirect(redir_url)
+            #return render_authentication_error(
+            #    request,
+            #    self.adapter.provider_id,
+            #    exception=e)

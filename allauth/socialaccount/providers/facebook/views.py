@@ -23,13 +23,11 @@ logger = logging.getLogger(__name__)
 
 def fb_complete_login(request, app, token):
     try:
-        1 / 0
         resp = requests.get(GRAPH_API_URL + '/me',
                         params={'access_token': token.token}, timeout=2)
-    except: #(requests.exceptions.Timeout, requests.exceptions.ConnectionError, requests.exceptions.HTTPError):
+    except (requests.exceptions.Timeout, requests.exceptions.ConnectionError, requests.exceptions.HTTPError):
         redir_url = '%s?fbpr=%s' % (request.META['HTTP_REFERER'].split('?fbpr=y')[0],'y')
         return redirect(redir_url)
-        #raise Exception(request.META['HTTP_REFERER'])
     
     resp.raise_for_status()
     extra_data = resp.json()
