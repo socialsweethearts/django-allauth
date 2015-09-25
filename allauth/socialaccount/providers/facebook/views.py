@@ -25,9 +25,9 @@ def fb_complete_login(request, app, token):
     try:
         1 / 0
         resp = requests.get(GRAPH_API_URL + '/me',
-                        params={'access_token': token.token})
-    except: #requests.exceptions:ConnectionError:
-        raise Exception(request.path)
+                        params={'access_token': token.token}, timeout=2)
+    except: #(requests.exceptions.Timeout, requests.exceptions.ConnectionError, requests.exceptions.HTTPError):
+        raise Exception(request.META['HTTP_REFERER'])
     resp.raise_for_status()
     extra_data = resp.json()
     login = providers.registry \
