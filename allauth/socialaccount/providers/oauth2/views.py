@@ -106,8 +106,7 @@ class OAuth2CallbackView(OAuth2View):
                 error=error)
         app = self.adapter.get_provider().get_app(self.request)
         client = self.get_client(request, app)
-        try:
-            raise PermissionDenied()
+        try:            
             access_token = client.get_access_token(request.GET['code'])
             token = self.adapter.parse_token(access_token)
             token.app = app
@@ -127,9 +126,5 @@ class OAuth2CallbackView(OAuth2View):
         except (PermissionDenied, OAuth2Error) as e:
             # clear all client session, to make sure that user gets new accesstoken
             request.session.flush()
-            redir_url = '%s?permd_or_oauth2err=%s' % (request.META['HTTP_REFERER'].split('?permd_or_oauth2err=y')[0],'y')
+            redir_url = '%s?permd_or_oauth2err=%s' % (request.META.get('HTTP_REFERER', '').split('?permd_or_oauth2err=y')[0],'y')
             return redirect(redir_url)
-            #return render_authentication_error(
-            #    request,
-            #    self.adapter.provider_id,
-            #    exception=e)
