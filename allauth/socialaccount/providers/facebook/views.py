@@ -40,7 +40,7 @@ class FacebookOAuth2Adapter(OAuth2Adapter):
     expires_in_key = 'expires'
 
     def complete_login(self, request, app, access_token, **kwargs):
-        return fb_complete_login(request, app, access_token)
+        return fb_complete_login(request, app, access_token, SocialLogin.get_redirect_url(request))
 
 
 oauth2_login = OAuth2LoginView.adapter_view(FacebookOAuth2Adapter)
