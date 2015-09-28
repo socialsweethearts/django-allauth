@@ -21,12 +21,12 @@ from .provider import FacebookProvider, GRAPH_API_URL
 logger = logging.getLogger(__name__)
 
 
-def fb_complete_login(request, app, token):
+def fb_complete_login(request, app, token, next_url):
     try:
         resp = requests.get(GRAPH_API_URL + '/me',
                         params={'access_token': token.token}, timeout=2)
     except (requests.exceptions.Timeout, requests.exceptions.ConnectionError, requests.exceptions.HTTPError):
-        redir_url = '%s?fbpr=%s' % (request.META.get('HTTP_REFERER', '').split('?fbpr=y')[0],'y')
+        redir_url = '%s?fbpr=%s' % (next_url.split('?fbpr=y')[0],'y')
         return redirect(redir_url)
     
     resp.raise_for_status()
@@ -54,6 +54,7 @@ oauth2_callback = OAuth2CallbackView.adapter_view(FacebookOAuth2Adapter)
 
 def login_by_token(request):
     ret = None
+    next_url = SocialLogin.get_redirect_url(request)
     auth_exception = None
     if request.method == 'POST':
         form = FacebookConnectForm(request.POST)
@@ -76,7 +77,7 @@ def login_by_token(request):
                 if ok:
                     token = SocialToken(app=app,
                                         token=access_token)
-                    login = fb_complete_login(request, app, token)
+                    login = fb_complete_login(request, app, token, next_url)
                     login.token = token
                     login.state = SocialLogin.state_from_request(request)
                     ret = complete_social_login(request, login)
@@ -84,9 +85,11 @@ def login_by_token(request):
                 logger.exception('Error accessing FB user profile')
                 auth_exception = e
     if not ret:
-        ret = render_authentication_error(request,
-                                          FacebookProvider.id,
-                                          exception=auth_exception)
+        redir_url = '%s?fbpr=%s' % (next_url.split('?fbpr=y')[0],'y')
+        return redirect(redir_url)
+        #ret = render_authentication_error(request,
+        #                                  FacebookProvider.id,
+        #                                  exception=auth_exception)
     return ret
 
 

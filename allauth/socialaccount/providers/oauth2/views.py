@@ -126,5 +126,6 @@ class OAuth2CallbackView(OAuth2View):
         except (PermissionDenied, OAuth2Error) as e:
             # clear all client session, to make sure that user gets new accesstoken
             request.session.flush()
-            redir_url = '%s?permd_or_oauth2err=%s' % (request.META.get('HTTP_REFERER', '').split('?permd_or_oauth2err=y')[0],'y')
+            next_url = SocialLogin.get_redirect_url(request)
+            redir_url = '%s?permd_or_oauth2err=%s' % (next_url.split('?permd_or_oauth2err=y')[0],'y')
             return redirect(redir_url)
