@@ -18,6 +18,7 @@ from allauth.socialaccount.helpers import complete_social_login
 from allauth.socialaccount.models import SocialToken, SocialLogin
 from ..base import AuthAction, AuthError
 from allauth.account.utils import get_next_redirect_url
+import requests
 
 class OAuth2Adapter(object):
     expires_in_key = 'expires_in'
@@ -85,10 +86,7 @@ class OAuth2LoginView(OAuth2View):
             return HttpResponseRedirect(client.get_redirect_url(
                 auth_url, auth_params))
         except OAuth2Error as e:
-            return render_authentication_error(
-                request,
-                provider.id,
-                exception=e)
+            return redirect(get_next_redirect_url(request))
 
 
 class OAuth2CallbackView(OAuth2View):
@@ -123,7 +121,7 @@ class OAuth2CallbackView(OAuth2View):
             else:
                 login.state = SocialLogin.unstash_state(request)
             return complete_social_login(request, login)
-        except (PermissionDenied, OAuth2Error) as e:
+        except (PermissionDenied, OAuth2Error, requests.RequestException) as e:
             # clear all client session, to make sure that user gets new accesstoken
             request.session.flush()
             next_url = get_next_redirect_url(request)

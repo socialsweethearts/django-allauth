@@ -24,7 +24,8 @@ logger = logging.getLogger(__name__)
 
 def fb_complete_login(request, app, token, next_url):
     resp = requests.get(GRAPH_API_URL + '/me',
-                        params={'access_token': token.token}, timeout=2)
+                      params={'access_token': token.token}, timeout=2)
+    
     resp.raise_for_status()
     extra_data = resp.json()
     login = providers.registry \
