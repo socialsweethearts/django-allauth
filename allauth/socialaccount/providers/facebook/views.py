@@ -10,6 +10,7 @@ from allauth.socialaccount.models import (SocialLogin,
 from allauth.socialaccount.helpers import complete_social_login
 from allauth.socialaccount.helpers import render_authentication_error
 from allauth.socialaccount import providers
+from allauth.account.utils import get_next_redirect_url
 from allauth.socialaccount.providers.oauth2.views import (OAuth2Adapter,
                                                           OAuth2LoginView,
                                                           OAuth2CallbackView)
@@ -49,7 +50,7 @@ oauth2_callback = OAuth2CallbackView.adapter_view(FacebookOAuth2Adapter)
 
 def login_by_token(request):
     ret = None
-    next_url = SocialLogin.get_redirect_url(request)
+    next_url = get_next_redirect_url(request)
     auth_exception = None
     if request.method == 'POST':
         form = FacebookConnectForm(request.POST)
