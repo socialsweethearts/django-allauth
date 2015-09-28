@@ -22,13 +22,8 @@ logger = logging.getLogger(__name__)
 
 
 def fb_complete_login(request, app, token, next_url):
-    try:
-        resp = requests.get(GRAPH_API_URL + '/me',
+    resp = requests.get(GRAPH_API_URL + '/me',
                         params={'access_token': token.token}, timeout=2)
-    except (requests.exceptions.Timeout, requests.exceptions.ConnectionError, requests.exceptions.HTTPError):
-        redir_url = '%s?fbpr=%s' % (next_url.split('?fbpr=y')[0],'y')
-        return redirect(redir_url)
-    
     resp.raise_for_status()
     extra_data = resp.json()
     login = providers.registry \
@@ -87,9 +82,6 @@ def login_by_token(request):
     if not ret:
         redir_url = '%s?fbpr=%s' % (next_url.split('?fbpr=y')[0],'y')
         return redirect(redir_url)
-        #ret = render_authentication_error(request,
-        #                                  FacebookProvider.id,
-        #                                  exception=auth_exception)
     return ret
 
 
