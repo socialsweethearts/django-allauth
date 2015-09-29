@@ -295,15 +295,15 @@ class SocialLogin(object):
     @classmethod
     def unstash_state(cls, request):
         if 'socialaccount_state' not in request.session:
-            raise PermissionDenied(request.session.iteritems())
+            raise PermissionDenied(request.session.items())
         state, verifier = request.session.get('socialaccount_state')
         return state
 
     @classmethod
     def verify_and_unstash_state(cls, request, verifier):
         if 'socialaccount_state' not in request.session:
-            raise PermissionDenied(request.session.iteritems())
+            raise PermissionDenied(request.session.items())
         state, verifier2 = request.session.get('socialaccount_state')
         if verifier != verifier2:
-            raise PermissionDenied(request.session.iteritems())
+            raise PermissionDenied(request.session.items())
         return state
