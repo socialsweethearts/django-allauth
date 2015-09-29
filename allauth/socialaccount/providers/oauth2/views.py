@@ -87,7 +87,7 @@ class OAuth2LoginView(OAuth2View):
                 auth_url, auth_params))
         except OAuth2Error as e:
             next_url = get_next_redirect_url(request)
-            redir_url = '%s&loginerr=%s' % (next_url.split('&loginerr=y')[0], 'y')
+            redir_url = '%s&loginerr=y' % next_url.split('&loginerr=y')[0]
             return redirect(redir_url)
 
 
@@ -128,7 +128,7 @@ class OAuth2CallbackView(OAuth2View):
             try:
 	        next_url = SocialLogin.unstash_state(request).get('next', '')
 		if next_url:
-		    redir_url = '%s&loginerr=%s' % (next_url.split('&loginerr=y')[0], 'y')
+		    redir_url = '%s&loginerr=y' % next_url.split('&loginerr=y')[0]
 		else: 
 		    raise PermissionDenied()
             except PermissionDenied:
