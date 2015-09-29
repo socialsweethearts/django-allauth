@@ -87,7 +87,7 @@ class OAuth2LoginView(OAuth2View):
                 auth_url, auth_params))
         except OAuth2Error as e:
             next_url = get_next_redirect_url(request)
-            redir_url = '%s&loginerr=%s' % (next_url.split('&loginerr=y')[0],'y')
+            redir_url = '%s&loginerr=%s' % (next_url.split('&loginerr=y')[0], 'y')
             return redirect(redir_url)
 
 
@@ -127,7 +127,11 @@ class OAuth2CallbackView(OAuth2View):
             # clear all client session, to make sure that user gets new accesstoken
             try:
 	        next_url = SocialLogin.unstash_state(request).get('next', '')
+		if next_url:
+		    redir_url = '%s&loginerr=%s' % (next_url.split('&loginerr=y')[0], 'y')
+		else: 
+		    raise PermissionDenied()
             except PermissionDenied:
 	        next_url = request.META.get('HTTP_REFERER', '/')
-	    redir_url = '%s&loginerr=%s' % (next_url.split('&loginerr=y')[0],'y')
-            return redirect(redir_url)
+	    	redir_url = '%s?loginerr=y' % next_url
+	    return redirect(redir_url)
