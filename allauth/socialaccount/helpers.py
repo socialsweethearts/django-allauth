@@ -127,10 +127,7 @@ def _add_social_account(request, sociallogin):
 
 
 def complete_social_login(request, sociallogin):
-    if not hasattr(sociallogin, 'is_existing'):
-        return redirect(sociallogin.url)
-    
-    #assert not sociallogin.is_existing
+    assert not sociallogin.is_existing
     sociallogin.lookup()
     try:
         get_adapter().pre_social_login(request, sociallogin)

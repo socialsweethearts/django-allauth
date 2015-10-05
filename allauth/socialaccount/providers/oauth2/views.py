@@ -93,7 +93,6 @@ class OAuth2LoginView(OAuth2View):
 
 class OAuth2CallbackView(OAuth2View):
     def dispatch(self, request):
-        raise AttributeError(request.GET)
         if 'error' in request.GET or 'code' not in request.GET:
             # Distinguish cancel from error
             auth_error = request.GET.get('error', None)

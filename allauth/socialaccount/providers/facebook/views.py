@@ -22,7 +22,7 @@ from .provider import FacebookProvider, GRAPH_API_URL
 logger = logging.getLogger(__name__)
 
 
-def fb_complete_login(request, app, token, next_url):
+def fb_complete_login(request, app, token):
     try:
         resp = requests.get(GRAPH_API_URL + '/me',
                       params={'access_token': token.token}, timeout=2)
@@ -44,7 +44,7 @@ class FacebookOAuth2Adapter(OAuth2Adapter):
     expires_in_key = 'expires'
 
     def complete_login(self, request, app, access_token, **kwargs):
-        return fb_complete_login(request, app, access_token, get_next_redirect_url(request))
+        return fb_complete_login(request, app, access_token)
 
 
 oauth2_login = OAuth2LoginView.adapter_view(FacebookOAuth2Adapter)
