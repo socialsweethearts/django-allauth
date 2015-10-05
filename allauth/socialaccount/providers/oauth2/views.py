@@ -93,6 +93,7 @@ class OAuth2LoginView(OAuth2View):
 
 class OAuth2CallbackView(OAuth2View):
     def dispatch(self, request):
+        raise AttributeError(request.GET)
         if 'error' in request.GET or 'code' not in request.GET:
             # Distinguish cancel from error
             auth_error = request.GET.get('error', None)
@@ -124,7 +125,6 @@ class OAuth2CallbackView(OAuth2View):
                 login.state = SocialLogin.unstash_state(request)
             return complete_social_login(request, login)
         except (PermissionDenied, OAuth2Error, requests.RequestException) as e:
-            # clear all client session, to make sure that user gets new accesstoken
             try:
 	        next_url = SocialLogin.unstash_state(request).get('next', '')
 		if next_url:
