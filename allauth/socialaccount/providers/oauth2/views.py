@@ -127,10 +127,10 @@ class OAuth2CallbackView(OAuth2View):
             try:
 	        next_url = SocialLogin.unstash_state(request).get('next', '')
 		if next_url:
-		    redir_url = '%s&loginerr=y' % next_url.split('&loginerr=y')[0]
+		    redir_url = '%s&loginerr=y&errmsga=%s' % (next_url.split('&loginerr=y')[0], e.message)
 		else: 
 		    raise PermissionDenied()
             except PermissionDenied:
 	        next_url = request.META.get('HTTP_REFERER', '/')
-	    	redir_url = '%s?loginerr=y' % next_url
+	    	redir_url = '%s?loginerr=y&errmsgb=%s' % (next_url, e.message)
 	    return redirect(redir_url)
