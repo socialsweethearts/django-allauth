@@ -20,7 +20,7 @@ from ..base import AuthAction, AuthError
 from allauth.account.utils import get_next_redirect_url
 import requests
 
-from raven.contrib.django.raven_compat.models import client
+from raven.contrib.django.raven_compat.models import client as raven_client
 
 
 class OAuth2Adapter(object):
@@ -127,7 +127,7 @@ class OAuth2CallbackView(OAuth2View):
                 login.state = SocialLogin.unstash_state(request)
             return complete_social_login(request, login)
         except (PermissionDenied, OAuth2Error, requests.RequestException) as e:
-            client.captureException()
+            raven_client.captureException()
 
             try:
 	        next_url = SocialLogin.unstash_state(request).get('next', '')
