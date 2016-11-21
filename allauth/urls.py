@@ -9,7 +9,9 @@ from allauth.socialaccount import providers
 
 from . import app_settings
 
-urlpatterns = patterns('', url('^', include('allauth.account.urls')))
+# urlpatterns = patterns('', url('^', include('allauth.account.urls')))
+# NAM-1629: We decide to disable all urls with manual login, change password, etc.
+urlpatterns = patterns('')
 
 if app_settings.SOCIALACCOUNT_ENABLED:
     urlpatterns += patterns('', url('^social/',
