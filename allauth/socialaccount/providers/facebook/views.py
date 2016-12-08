@@ -24,8 +24,21 @@ logger = logging.getLogger(__name__)
 
 def fb_complete_login(request, app, token):
     try:
-        resp = requests.get(GRAPH_API_URL + '/me',
-                      params={'access_token': token.token}, timeout=2)
+        resp = requests.get(GRAPH_API_URL + '/me', params={
+          'access_token': token.token,
+          'fields': ['id',
+            'email',
+            'name',
+            'first_name',
+            'last_name',
+            'verified',
+            'locale',
+            'timezone',
+            'link',
+            'gender',
+            'birthday',
+            'updated_time']
+        }, timeout=2)
     except Exception as e:
         raise requests.RequestException(e.message)
     resp.raise_for_status()
