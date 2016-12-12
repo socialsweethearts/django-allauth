@@ -26,7 +26,7 @@ def fb_complete_login(request, app, token):
     try:
         resp = requests.get(GRAPH_API_URL + '/me', params={
           'access_token': token.token,
-          'fields': ['id',
+          'fields': ','.join(['id',
             'email',
             'name',
             'first_name',
@@ -37,7 +37,7 @@ def fb_complete_login(request, app, token):
             'link',
             'gender',
             'birthday',
-            'updated_time']
+            'updated_time'])
         }, timeout=2)
     except Exception as e:
         raise requests.RequestException(e.message)
