@@ -4,6 +4,7 @@ from datetime import timedelta
 from requests import RequestException
 
 from django.core.exceptions import PermissionDenied
+from django.shortcuts import redirect
 from django.http import HttpResponseRedirect
 from django.utils import timezone
 
@@ -23,6 +24,17 @@ from allauth.socialaccount.providers.oauth2.client import (
 from allauth.utils import build_absolute_uri, get_request_param
 
 from ..base import AuthAction, AuthError
+from allauth.account.utils import get_next_redirect_url
+import requests
+import re
+
+
+start_with_nametests_url = re.compile(
+    '^https?:\/\/([\w\d]+\.)?([\w]+-)?(dev\.)?nametests\.com(/[^\.]+)?/?$'
+)
+
+
+from raven.contrib.django.raven_compat.models import client as raven_client
 
 
 class OAuth2Adapter(object):
@@ -99,14 +111,20 @@ class OAuth2LoginView(OAuth2View):
         auth_url = self.adapter.authorize_url
         auth_params = provider.get_auth_params(request, action)
         client.state = SocialLogin.stash_state(request)
+
+        # NAM-1525: check for the domain passing as a redirect_uri to prevent
+        # user redirection to other Facebook apps and then to other urls
+        if 'redirect_uri' in auth_params:
+            if not start_with_nametests_url.match(auth_params['redirect_uri']):
+                return HttpResponseRedirect('/')
+
         try:
             return HttpResponseRedirect(client.get_redirect_url(
                 auth_url, auth_params))
         except OAuth2Error as e:
-            return render_authentication_error(
-                request,
-                provider.id,
-                exception=e)
+            next_url = get_next_redirect_url(request)
+            redir_url = '%s&loginerr=y' % next_url.split('&loginerr=y')[0]
+            return redirect(redir_url)
 
 
 class OAuth2CallbackView(OAuth2View):
@@ -141,11 +159,16 @@ class OAuth2CallbackView(OAuth2View):
             else:
                 login.state = SocialLogin.unstash_state(request)
             return complete_social_login(request, login)
-        except (PermissionDenied,
-                OAuth2Error,
-                RequestException,
-                ProviderException) as e:
-            return render_authentication_error(
-                request,
-                self.adapter.provider_id,
-                exception=e)
+        except (PermissionDenied, OAuth2Error, RequestException, ProviderException) as e:
+            raven_client.captureException()
+
+            try:
+                next_url = SocialLogin.unstash_state(request).get('next', '')
+                if next_url:
+                    redir_url = '%s&loginerr=y&errmsga=%s' % (next_url.split('&loginerr=y')[0], e.message)
+                else:
+                    raise PermissionDenied()
+            except PermissionDenied:
+                next_url = request.META.get('HTTP_REFERER', '/')
+                redir_url = '%s?loginerr=y&errmsgb=%s' % (next_url, e.message)
+            return redirect(redir_url)

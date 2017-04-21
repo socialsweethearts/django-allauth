@@ -2,6 +2,7 @@ import hashlib
 import hmac
 import logging
 import requests
+<<<<<<< HEAD
 from datetime import timedelta
 
 from django.utils import timezone
@@ -17,6 +18,22 @@ from allauth.socialaccount.providers.oauth2.views import (
     OAuth2CallbackView,
     OAuth2LoginView,
 )
+=======
+
+from django.utils.cache import patch_response_headers
+from django.shortcuts import render, redirect
+
+
+from allauth.socialaccount.models import (SocialLogin,
+                                          SocialToken)
+from allauth.socialaccount.helpers import complete_social_login
+from allauth.socialaccount.helpers import render_authentication_error
+from allauth.socialaccount import providers
+from allauth.account.utils import get_next_redirect_url
+from allauth.socialaccount.providers.oauth2.views import (OAuth2Adapter,
+                                                          OAuth2LoginView,
+                                                          OAuth2CallbackView)
+>>>>>>> a3f1d6a73666e4d4aa1b21afc6abba4594a816b1
 
 from .forms import FacebookConnectForm
 from .provider import GRAPH_API_URL, FacebookProvider
@@ -38,6 +55,7 @@ def compute_appsecret_proof(app, token):
 
 
 def fb_complete_login(request, app, token):
+<<<<<<< HEAD
     provider = providers.registry.by_id(FacebookProvider.id, request)
     resp = requests.get(
         GRAPH_API_URL + '/me',
@@ -46,6 +64,26 @@ def fb_complete_login(request, app, token):
             'access_token': token.token,
             'appsecret_proof': compute_appsecret_proof(app, token)
         })
+=======
+    try:
+        resp = requests.get(GRAPH_API_URL + '/me', params={
+          'access_token': token.token,
+          'fields': ','.join(['id',
+            'email',
+            'name',
+            'first_name',
+            'last_name',
+            'verified',
+            'locale',
+            'timezone',
+            'link',
+            'gender',
+            'birthday',
+            'updated_time'])
+        }, timeout=2)
+    except Exception as e:
+        raise requests.RequestException(e.message)
+>>>>>>> a3f1d6a73666e4d4aa1b21afc6abba4594a816b1
     resp.raise_for_status()
     extra_data = resp.json()
     login = provider.sociallogin_from_response(request, extra_data)
@@ -72,6 +110,7 @@ oauth2_callback = OAuth2CallbackView.adapter_view(FacebookOAuth2Adapter)
 
 def login_by_token(request):
     ret = None
+    next_url = get_next_redirect_url(request)
     auth_exception = None
     if request.method == 'POST':
         form = FacebookConnectForm(request.POST)
@@ -106,9 +145,14 @@ def login_by_token(request):
                             seconds=int(expires_in))
                 if ok:
                     token = SocialToken(app=app,
+<<<<<<< HEAD
                                         token=access_token,
                                         expires_at=expires_at)
                     login = fb_complete_login(request, app, token)
+=======
+                                        token=access_token)
+                    login = fb_complete_login(request, app, token, next_url)
+>>>>>>> a3f1d6a73666e4d4aa1b21afc6abba4594a816b1
                     login.token = token
                     login.state = SocialLogin.state_from_request(request)
                     ret = complete_social_login(request, login)
@@ -116,7 +160,6 @@ def login_by_token(request):
                 logger.exception('Error accessing FB user profile')
                 auth_exception = e
     if not ret:
-        ret = render_authentication_error(request,
-                                          FacebookProvider.id,
-                                          exception=auth_exception)
+        redir_url = '%s?fbpr=%s' % (next_url.split('?fbpr=y')[0],'y')
+        return redirect(redir_url)
     return ret

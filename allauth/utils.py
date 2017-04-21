@@ -1,3 +1,4 @@
+import os
 import base64
 import importlib
 import json
@@ -66,52 +67,8 @@ def _generate_unique_username_base(txts, regex=None):
     return username or 'user'
 
 
-def get_username_max_length():
-    from .account.app_settings import USER_MODEL_USERNAME_FIELD
-    if USER_MODEL_USERNAME_FIELD is not None:
-        User = get_user_model()
-        max_length = User._meta.get_field(USER_MODEL_USERNAME_FIELD).max_length
-    else:
-        max_length = 0
-    return max_length
-
-
-def generate_username_candidate(basename, suffix_length):
-    max_length = get_username_max_length()
-    suffix = ''.join(
-        random.choice(USERNAME_SUFFIX_CHARS[i])
-        for i in range(suffix_length))
-    return basename[0:max_length - len(suffix)] + suffix
-
-
-def generate_username_candidates(basename):
-    ret = [basename]
-    max_suffix_length = min(
-        get_username_max_length(),
-        MAX_USERNAME_SUFFIX_LENGTH)
-    for suffix_length in range(2, max_suffix_length):
-        ret.append(generate_username_candidate(basename, suffix_length))
-    return ret
-
-
-def generate_unique_username(txts, regex=None):
-    from .account.app_settings import USER_MODEL_USERNAME_FIELD
-    from .account.adapter import get_adapter
-    from allauth.account.utils import filter_users_by_username
-
-    adapter = get_adapter()
-    basename = _generate_unique_username_base(txts, regex)
-    candidates = generate_username_candidates(basename)
-    existing_users = filter_users_by_username(*candidates).values_list(
-        USER_MODEL_USERNAME_FIELD, flat=True)
-    for candidate in candidates:
-        if candidate not in existing_users:
-            try:
-                return adapter.clean_username(candidate, shallow=True)
-            except ValidationError:
-                pass
-    # This really should not happen
-    raise NotImplementedError('Unable to find a unique username')
+def generate_unique_username(txts):
+    return os.urandom(28).encode('hex')
 
 
 def valid_email_or_none(email):
