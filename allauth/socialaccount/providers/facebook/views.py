@@ -2,38 +2,22 @@ import hashlib
 import hmac
 import logging
 import requests
-<<<<<<< HEAD
 from datetime import timedelta
 
 from django.utils import timezone
 
-from allauth.socialaccount import app_settings, providers
-from allauth.socialaccount.helpers import (
-    complete_social_login,
-    render_authentication_error,
-)
-from allauth.socialaccount.models import SocialLogin, SocialToken
-from allauth.socialaccount.providers.oauth2.views import (
-    OAuth2Adapter,
-    OAuth2CallbackView,
-    OAuth2LoginView,
-)
-=======
-
-from django.utils.cache import patch_response_headers
-from django.shortcuts import render, redirect
+from allauth.socialaccount import app_settings
+from django.shortcuts import redirect
 
 
 from allauth.socialaccount.models import (SocialLogin,
                                           SocialToken)
 from allauth.socialaccount.helpers import complete_social_login
-from allauth.socialaccount.helpers import render_authentication_error
 from allauth.socialaccount import providers
 from allauth.account.utils import get_next_redirect_url
 from allauth.socialaccount.providers.oauth2.views import (OAuth2Adapter,
                                                           OAuth2LoginView,
                                                           OAuth2CallbackView)
->>>>>>> a3f1d6a73666e4d4aa1b21afc6abba4594a816b1
 
 from .forms import FacebookConnectForm
 from .provider import GRAPH_API_URL, FacebookProvider
@@ -55,16 +39,6 @@ def compute_appsecret_proof(app, token):
 
 
 def fb_complete_login(request, app, token):
-<<<<<<< HEAD
-    provider = providers.registry.by_id(FacebookProvider.id, request)
-    resp = requests.get(
-        GRAPH_API_URL + '/me',
-        params={
-            'fields': ','.join(provider.get_fields()),
-            'access_token': token.token,
-            'appsecret_proof': compute_appsecret_proof(app, token)
-        })
-=======
     try:
         resp = requests.get(GRAPH_API_URL + '/me', params={
           'access_token': token.token,
@@ -83,7 +57,6 @@ def fb_complete_login(request, app, token):
         }, timeout=2)
     except Exception as e:
         raise requests.RequestException(e.message)
->>>>>>> a3f1d6a73666e4d4aa1b21afc6abba4594a816b1
     resp.raise_for_status()
     extra_data = resp.json()
     login = provider.sociallogin_from_response(request, extra_data)
@@ -145,14 +118,8 @@ def login_by_token(request):
                             seconds=int(expires_in))
                 if ok:
                     token = SocialToken(app=app,
-<<<<<<< HEAD
-                                        token=access_token,
-                                        expires_at=expires_at)
-                    login = fb_complete_login(request, app, token)
-=======
                                         token=access_token)
                     login = fb_complete_login(request, app, token, next_url)
->>>>>>> a3f1d6a73666e4d4aa1b21afc6abba4594a816b1
                     login.token = token
                     login.state = SocialLogin.state_from_request(request)
                     ret = complete_social_login(request, login)
