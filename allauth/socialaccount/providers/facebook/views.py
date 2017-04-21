@@ -59,7 +59,9 @@ def fb_complete_login(request, app, token):
         raise requests.RequestException(e.message)
     resp.raise_for_status()
     extra_data = resp.json()
-    login = provider.sociallogin_from_response(request, extra_data)
+    login = providers.registry \
+        .by_id(FacebookProvider.id) \
+        .sociallogin_from_response(request, extra_data)
     return login
 
 
