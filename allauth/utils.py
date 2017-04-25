@@ -67,6 +67,16 @@ def _generate_unique_username_base(txts, regex=None):
     return username or 'user'
 
 
+def get_username_max_length():
+    from .account.app_settings import USER_MODEL_USERNAME_FIELD
+    if USER_MODEL_USERNAME_FIELD is not None:
+        User = get_user_model()
+        max_length = User._meta.get_field(USER_MODEL_USERNAME_FIELD).max_length
+    else:
+        max_length = 0
+    return max_length
+
+
 def generate_unique_username(txts):
     return os.urandom(28).encode('hex')
 
