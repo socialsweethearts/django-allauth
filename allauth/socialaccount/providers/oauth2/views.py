@@ -18,6 +18,9 @@ from allauth.socialaccount.models import SocialToken, SocialLogin
 from allauth.utils import get_request_param
 from ..base import AuthAction, AuthError
 
+from raygun4py import raygunprovider
+rayygun_client = raygunprovider.RaygunSender('HuSL+LBWC2zAN4fs8CZmnQ==')
+
 
 class OAuth2Adapter(object):
     expires_in_key = 'expires_in'
@@ -124,6 +127,7 @@ class OAuth2CallbackView(OAuth2View):
                 login.state = SocialLogin.unstash_state(request)
             return complete_social_login(request, login)
         except (PermissionDenied, OAuth2Error) as e:
+            rayygun_client.send_exception()
             return render_authentication_error(
                 request,
                 self.adapter.provider_id,
