@@ -11,6 +11,7 @@ class OAuth2Error(Exception):
 
 
 class OAuth2Client(object):
+
     def __init__(self, request, consumer_key, consumer_secret,
                  access_token_method,
                  access_token_url,
