@@ -11,7 +11,6 @@ class OAuth2Error(Exception):
 
 
 class OAuth2Client(object):
-
     def __init__(self, request, consumer_key, consumer_secret,
                  access_token_method,
                  access_token_url,
@@ -29,14 +28,16 @@ class OAuth2Client(object):
     def get_redirect_url(self, authorization_url, extra_params):
         params = {
             'client_id': self.consumer_key,
-            'redirect_uri': self.callback_url,
             'scope': self.scope,
             'response_type': 'code'
         }
         if self.state:
             params['state'] = self.state
         params.update(extra_params)
-        return '%s?%s' % (authorization_url, urlencode(params))
+        redirect_url = '%s?%s' % (authorization_url, urlencode(params))
+        redirect_url += '&redirect_uri=%s' % self.callback_url
+        redirect_url = redirect_url.replace('\n', '')
+        return redirect_url
 
     def get_access_token(self, code):
         data = {'client_id': self.consumer_key,
@@ -70,7 +71,7 @@ class OAuth2Client(object):
         return access_token
 
     def _strip_empty_keys(self, params):
-        """Added because the Dropbox OAuth2 flow doesn't 
+        """Added because the Dropbox OAuth2 flow doesn't
         work when scope is passed in, which is empty.
         """
         keys = [k for k, v in params.items() if v == '']
