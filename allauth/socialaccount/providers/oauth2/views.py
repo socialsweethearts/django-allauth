@@ -91,7 +91,8 @@ class OAuth2LoginView(OAuth2View):
         encoded_state = pickle.dumps(state).encode('base64', 'strict')
         client.callback_url += '?encoded_state=%s' % encoded_state
         try:
-            return HttpResponseRedirect(client.get_redirect_url(auth_url, auth_params))
+            return HttpResponseRedirect(client.get_redirect_url(
+                auth_url, auth_params))
         except OAuth2Error as e:
             return render_authentication_error(
                 request,
