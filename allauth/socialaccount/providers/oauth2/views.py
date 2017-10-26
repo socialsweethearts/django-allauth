@@ -1,10 +1,5 @@
 from __future__ import absolute_import
 
-try:
-    from urllib.parse import quote_plus
-except ImportError:
-    from urllib import quote_plus
-
 import pickle
 from datetime import timedelta
 
