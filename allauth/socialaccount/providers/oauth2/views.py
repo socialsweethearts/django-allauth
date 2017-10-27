@@ -116,8 +116,6 @@ class OAuth2CallbackView(OAuth2View):
         client = self.get_client(request, app)
         encoded_state = get_request_param(request, 'encoded_state')
         if encoded_state:
-            if encoded_state.endswith('='):
-                encoded_state = encoded_state[:-1]
             client.callback_url += '?encoded_state=%s' % encoded_state
         try:
             access_token = client.get_access_token(request.GET['code'])
