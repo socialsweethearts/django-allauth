@@ -111,7 +111,8 @@ class OAuth2CallbackView(OAuth2View):
                 request,
                 self.adapter.provider_id,
                 error=error)
-        app = self.adapter.get_provider().get_app(self.request)
+        provider = self.adapter.get_provider()
+        app = provider.get_app(self.request)
         client = self.get_client(request, app)
         encoded_state = get_request_param(request, 'encoded_state')
         if encoded_state:
