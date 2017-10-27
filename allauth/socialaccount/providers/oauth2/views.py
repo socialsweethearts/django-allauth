@@ -90,6 +90,7 @@ class OAuth2LoginView(OAuth2View):
         new_state = '%s,%s' % (state_verifier, encoded_state)
         client.state = new_state
         try:
+
             return HttpResponseRedirect(client.get_redirect_url(
                 auth_url, auth_params))
         except OAuth2Error as e:
