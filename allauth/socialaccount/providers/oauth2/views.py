@@ -116,7 +116,7 @@ class OAuth2CallbackView(OAuth2View):
         client = self.get_client(request, app)
         encoded_state = get_request_param(request, 'encoded_state')
         if encoded_state:
-            client.callback_url += '?encoded_state=%s' % encoded_state
+            client.callback_url += '?encoded_state=%s=' % encoded_state
         try:
             access_token = client.get_access_token(request.GET['code'])
             token = self.adapter.parse_token(access_token)
