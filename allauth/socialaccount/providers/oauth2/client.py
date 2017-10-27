@@ -70,7 +70,7 @@ class OAuth2Client(object):
         return access_token
 
     def _strip_empty_keys(self, params):
-        """Added because the Dropbox OAuth2 flow doesn't
+        """Added because the Dropbox OAuth2 flow doesn't 
         work when scope is passed in, which is empty.
         """
         keys = [k for k, v in params.items() if v == '']
