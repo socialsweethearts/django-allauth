@@ -20,7 +20,6 @@ from allauth.utils import get_request_param
 from ..base import AuthAction, AuthError
 
 from raygun4py import raygunprovider
-
 rayygun_client = raygunprovider.RaygunSender('HuSL+LBWC2zAN4fs8CZmnQ==')
 
 
@@ -137,7 +136,7 @@ class OAuth2CallbackView(OAuth2View):
                         encoded_state = pickle.loads(encoded_state.decode('base64', 'strict'))
                         login.state = encoded_state
                     else:
-                        raise
+                        raise PermissionDenied
             else:
                 login.state = SocialLogin.unstash_state(request)
             return complete_social_login(request, login)
