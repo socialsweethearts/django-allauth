@@ -116,7 +116,14 @@ class OAuth2CallbackView(OAuth2View):
         client = self.get_client(request, app)
         encoded_state = get_request_param(request, 'encoded_state')
         if encoded_state:
-            client.callback_url += '?encoded_state=%s=' % encoded_state
+            # If the length isn't a multiple of 4 characters, add = characters until it is
+            # base64 requires the length of string to be multiples of 4
+            encoded_state_len = len(encoded_state)
+            if encoded_state_len % 4 != 0:
+                required_padding_len = 4 - (encoded_state_len % 4)
+                for x in range(required_padding_len):
+                    encoded_state += '='
+            client.callback_url += '?encoded_state=%s' % encoded_state
         try:
             access_token = client.get_access_token(request.GET['code'])
             token = self.adapter.parse_token(access_token)
