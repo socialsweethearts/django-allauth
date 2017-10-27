@@ -84,7 +84,8 @@ class OAuth2LoginView(OAuth2View):
         action = request.GET.get('action', AuthAction.AUTHENTICATE)
         auth_url = self.adapter.authorize_url
         auth_params = provider.get_auth_params(request, action)
-        state_verifier, state = SocialLogin.stash_state(request), SocialLogin.state_from_request(request)
+        state_verifier = SocialLogin.stash_state(request)
+        state = SocialLogin.state_from_request(request)
         encoded_state = pickle.dumps(state).encode('base64', 'strict')
         encoded_state = encoded_state.replace('\n', '')
         new_state = '%s,%s' % (state_verifier, encoded_state)
