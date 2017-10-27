@@ -133,7 +133,6 @@ class OAuth2CallbackView(OAuth2View):
             login.token = token
             if self.adapter.supports_state:
                 try:
-                    request.session.pop('socialaccount_state')
                     login.state = SocialLogin \
                         .verify_and_unstash_state(
                         request, state_verifier)
