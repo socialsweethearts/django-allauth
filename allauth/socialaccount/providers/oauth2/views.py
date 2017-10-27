@@ -57,7 +57,6 @@ class OAuth2View(object):
             self.request = request
             self.adapter = adapter()
             return self.dispatch(request, *args, **kwargs)
-
         return view
 
     def get_client(self, request, app):
