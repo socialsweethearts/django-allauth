@@ -29,16 +29,14 @@ class OAuth2Client(object):
     def get_redirect_url(self, authorization_url, extra_params):
         params = {
             'client_id': self.consumer_key,
+            'redirect_uri': self.callback_url,
             'scope': self.scope,
             'response_type': 'code'
         }
         if self.state:
             params['state'] = self.state
         params.update(extra_params)
-        redirect_url = '%s?%s' % (authorization_url, urlencode(params))
-        redirect_url += '&redirect_uri=%s' % self.callback_url
-        redirect_url = redirect_url.replace('\n', '')
-        return redirect_url
+        return '%s?%s' % (authorization_url, urlencode(params))
 
     def get_access_token(self, code):
         data = {'client_id': self.consumer_key,

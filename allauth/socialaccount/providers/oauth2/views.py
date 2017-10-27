@@ -84,10 +84,11 @@ class OAuth2LoginView(OAuth2View):
         action = request.GET.get('action', AuthAction.AUTHENTICATE)
         auth_url = self.adapter.authorize_url
         auth_params = provider.get_auth_params(request, action)
-        client.state = SocialLogin.stash_state(request)
-        state = SocialLogin.state_from_request(request)
+        state_verifier, state = SocialLogin.stash_state(request), SocialLogin.state_from_request(request)
         encoded_state = pickle.dumps(state).encode('base64', 'strict')
-        client.callback_url += '?encoded_state=%s' % encoded_state
+        encoded_state = encoded_state.replace('\n', '')
+        new_state = '%s,%s' % (state_verifier, encoded_state)
+        client.state = new_state
         try:
             return HttpResponseRedirect(client.get_redirect_url(
                 auth_url, auth_params))
@@ -114,9 +115,13 @@ class OAuth2CallbackView(OAuth2View):
         provider = self.adapter.get_provider()
         app = provider.get_app(self.request)
         client = self.get_client(request, app)
-        encoded_state = get_request_param(request, 'encoded_state')
-        if encoded_state:
-            client.callback_url += '?encoded_state=%s' % encoded_state
+        new_state = get_request_param(request, 'state')
+        new_state_split = new_state.split(',')
+        encoded_state = None
+        if len(new_state_split) == 2:
+            state_verifier, encoded_state = new_state_split
+        else:
+            state_verifier = new_state_split[0]
         try:
             access_token = client.get_access_token(request.GET['code'])
             token = self.adapter.parse_token(access_token)
@@ -128,9 +133,10 @@ class OAuth2CallbackView(OAuth2View):
             login.token = token
             if self.adapter.supports_state:
                 try:
+                    request.session.pop('socialaccount_state')
                     login.state = SocialLogin \
                         .verify_and_unstash_state(
-                        request, get_request_param(request, 'state'))
+                        request, state_verifier)
                 except PermissionDenied:
                     if encoded_state:
                         encoded_state = pickle.loads(encoded_state.decode('base64', 'strict'))
