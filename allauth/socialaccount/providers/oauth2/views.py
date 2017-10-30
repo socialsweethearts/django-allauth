@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+import pickle
 from datetime import timedelta
 
 from django.core.exceptions import PermissionDenied
@@ -83,7 +84,12 @@ class OAuth2LoginView(OAuth2View):
         action = request.GET.get('action', AuthAction.AUTHENTICATE)
         auth_url = self.adapter.authorize_url
         auth_params = provider.get_auth_params(request, action)
-        client.state = SocialLogin.stash_state(request)
+        state_verifier = SocialLogin.stash_state(request)
+        state = SocialLogin.state_from_request(request)
+        encoded_state = pickle.dumps(state).encode('base64', 'strict')
+        encoded_state = encoded_state.replace('\n', '')
+        new_state = '%s,%s' % (state_verifier, encoded_state)
+        client.state = new_state
         try:
             return HttpResponseRedirect(client.get_redirect_url(
                 auth_url, auth_params))
@@ -107,8 +113,16 @@ class OAuth2CallbackView(OAuth2View):
                 request,
                 self.adapter.provider_id,
                 error=error)
-        app = self.adapter.get_provider().get_app(self.request)
+        provider = self.adapter.get_provider()
+        app = provider.get_app(self.request)
         client = self.get_client(request, app)
+        new_state = get_request_param(request, 'state')
+        new_state_split = new_state.split(',')
+        encoded_state = None
+        if len(new_state_split) == 2:
+            state_verifier, encoded_state = new_state_split
+        else:
+            state_verifier = new_state_split[0]
         try:
             access_token = client.get_access_token(request.GET['code'])
             token = self.adapter.parse_token(access_token)
@@ -119,10 +133,16 @@ class OAuth2CallbackView(OAuth2View):
                                                 response=access_token)
             login.token = token
             if self.adapter.supports_state:
-                login.state = SocialLogin \
-                    .verify_and_unstash_state(
-                        request,
-                        get_request_param(request, 'state'))
+                try:
+                    login.state = SocialLogin \
+                        .verify_and_unstash_state(
+                        request, state_verifier)
+                except PermissionDenied:
+                    if encoded_state:
+                        encoded_state = pickle.loads(encoded_state.decode('base64', 'strict'))
+                        login.state = encoded_state
+                    else:
+                        raise PermissionDenied
             else:
                 login.state = SocialLogin.unstash_state(request)
             return complete_social_login(request, login)
